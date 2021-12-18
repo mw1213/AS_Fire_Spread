@@ -18,6 +18,7 @@ EMPTY, TREE, SAPLING, STONE, WATER, FIRE, BLAZE = 0, 1, 2, 3, 4, 5, 6
 colors_list = ['black', 'darkgreen', 'lime', 'gray', 'blue', 'coral', 'orange']
 cmap = colors.ListedColormap(colors_list)
 bounds = [0, 1, 2, 3, 4, 5, 6, 7]
+
 norm = colors.BoundaryNorm(bounds, cmap.N)
 
 def iterate(X):
@@ -61,8 +62,8 @@ p, f = 0.05, 0.0001
 # Forest size (number of cells in x and y directions).
 nx, ny = 100, 100
 # Initialize the forest grid.
-X  = np.zeros((ny, nx))
-X[1:ny-1, 1:nx-1] = np.random.randint(0, 6, size=(ny-2, nx-2))
+X = np.random.choice([0,1,2,3,4,5,6], (ny, nx), p=[0.5, 0.29, 0.1, 0.05, 0.05, 0.005, 0.005])
+# np.random.randint(0, 6, size=(ny-2, nx-2))
 
 #X[1:ny-1, 1:nx-1] = np.random.random(size=(ny-2, nx-2)) < forest_fraction
 
