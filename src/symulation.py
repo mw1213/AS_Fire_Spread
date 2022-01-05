@@ -28,8 +28,6 @@ wind_infulence =[
 
 # Wind direction setting
 se, e, ne, n, nw, w, sw, s, no_wind_source = 0,1,2,3,4,5,6,7,8
-wind_direction = e
-
 # cell types
 EMPTY, DEAD_TREE, OLD_TREE, TREE, SAPLING, STONE, WATER, SPARKS, FIRE, COALS, BURNED_GROUND = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 TREE_TYPES = DEAD_TREE, OLD_TREE, TREE, SAPLING
@@ -38,9 +36,6 @@ TREE_TYPES = DEAD_TREE, OLD_TREE, TREE, SAPLING
 colors_list = ['white','sienna', 'darkolivegreen', 'darkgreen', 'lime', 'gray', 'blue', 'coral', 'firebrick', 'orange', 'black']
 cmap = colors.ListedColormap(colors_list)
 bounds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-
-# water influence in scale 0-1: 1 means no reduction
-water_reduction_rate =  1
 
 norm = colors.BoundaryNorm(bounds, cmap.N)
 
@@ -154,6 +149,9 @@ p, f = 0.0005, 0.00001
 p_tree_death = 0.01
 p_tree_to_old_tree = 0.25
 P_sapling_to_tree = 0.35
+# water influence in scale 0-1: 1 means no reduction
+water_reduction_rate =  1
+wind_direction = e
 # Forest size (number of cells in x and y directions).
 nx, ny = 100, 100
 # Initialize the forest grid.
@@ -171,7 +169,6 @@ im = ax.imshow(X, cmap=cmap, norm=norm)#, interpolation='nearest')
 def animate(i):
     im.set_data(animate.X)
     animate.X = iterate(animate.X)
-    #plt.legend([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], ['white','sienna', 'darkolivegreen', 'darkgreen', 'lime', 'gray', 'blue', 'coral', 'firebrick', 'orange', 'black'])
     plt.legend(handles=[mpatches.Patch(color='white', label='EMPTY'), mpatches.Patch(color='sienna', label='DEAD_TREE'), \
         mpatches.Patch(color='darkolivegreen', label='OLD_TREE'), mpatches.Patch(color='darkgreen', label='TREE'), \
         mpatches.Patch(color='lime', label='SAPLING'), mpatches.Patch(color='gray', label='STONE'), \
@@ -182,10 +179,23 @@ def animate(i):
 # Bind our grid to the identifier X in the animate function's namespace.
 animate.X = X
 
-# Interval between frames (ms).
-interval = 100
-anim = animation.FuncAnimation(fig, animate, interval=interval, frames=200)
-red_patch = mpatches.Patch(color='red', label='The red data')
-plt.legend(handles=[red_patch])
-#anim.save(f'animations/animation_water_influence_{water_reduction_rate}_wind_direction_{wind_direction}_with_legend.gif', fps=60)
-plt.show()
+# interval = time between frames (ms).
+def animate_with_pltshow(interval=100, wr_rate = 1, wind_dir = e):
+    global water_reduction_rate
+    water_reduction_rate = wr_rate
+    global wind_direction
+    wind_direction = wind_dir
+    anim = animation.FuncAnimation(fig, animate, interval=interval, frames=200)
+    plt.show()
+
+#lower fps fater animation when interval == 100
+def animate_to_gif(interval=100, no_fps=60, wr_rate = 1, wind_dir = e):
+    global water_reduction_rate
+    water_reduction_rate = wr_rate
+    global wind_direction
+    wind_direction = wind_dir
+    anim = animation.FuncAnimation(fig, animate, interval=interval, frames=200)
+    anim.save(f'animations/animation_water_influence_{water_reduction_rate}_wind_direction_{wind_direction}_with_legend_fps_{no_fps}.gif', fps = no_fps)
+
+animate_with_pltshow(10, wind_dir = s)
+#animate_to_gif(wind_dir=nw)
