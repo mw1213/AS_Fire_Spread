@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from matplotlib import colors
+import matplotlib.patches as mpatches
 
 
 # based on model from article
@@ -30,16 +31,16 @@ se, e, ne, n, nw, w, sw, s, no_wind_source = 0,1,2,3,4,5,6,7,8
 wind_direction = e
 
 # cell types
-EMPTY, DEAD_TREE, OLD_TREE, TREE, SAPLING, STONE, WATER, SPARKS, FIRE, COALS = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+EMPTY, DEAD_TREE, OLD_TREE, TREE, SAPLING, STONE, WATER, SPARKS, FIRE, COALS, BURNED_GROUND = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 TREE_TYPES = DEAD_TREE, OLD_TREE, TREE, SAPLING
 
 # maping cell types to colors
-colors_list = ['black','sienna', 'darkolivegreen', 'darkgreen', 'lime', 'gray', 'blue', 'coral', 'firebrick', 'orange']
+colors_list = ['white','sienna', 'darkolivegreen', 'darkgreen', 'lime', 'gray', 'blue', 'coral', 'firebrick', 'orange', 'black']
 cmap = colors.ListedColormap(colors_list)
-bounds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+bounds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
 # water influence in scale 0-1: 1 means no reduction
-water_reduction_rate = 1# 0.0000001
+water_reduction_rate =  1
 
 norm = colors.BoundaryNorm(bounds, cmap.N)
 
@@ -102,7 +103,11 @@ def iterate(X):
 
     # The boundary of the forest is always empty, so only consider cells
     # indexed from 1 to nx-2, 1 to ny-2
-    X1 = np.zeros((ny, nx))
+    X1 = np.copy(X)
+    X1[0,:] = BURNED_GROUND
+    X1[nx-1,:] = BURNED_GROUND
+    X1[:,ny-1] = BURNED_GROUND
+    X1[:,0] = BURNED_GROUND
     for ix in range(1,nx-1):
         for iy in range(1,ny-1):
             if X[iy,ix] == EMPTY and np.random.random() <= p:
@@ -136,21 +141,23 @@ def iterate(X):
             if X[iy,ix] == FIRE:
                 X1[iy,ix] = COALS
             if X[iy,ix] == COALS:
-                X1[iy,ix] = EMPTY
+                X1[iy,ix] = BURNED_GROUND
+            if X[iy,ix] == BURNED_GROUND:
+                X1[iy,ix] = BURNED_GROUND
             if X[iy,ix] in TREE_TYPES:
                 is_near_water = near_water(X1, ix, iy)
                 calculate_fire_at_position(X, X1, ix, iy, X1[iy,ix], is_near_water)
     return X1
 
 # Probability of new tree growth per empty cell, and of lightning strike.
-p, f = 0.05, 0.0001
+p, f = 0.0005, 0.00001
 p_tree_death = 0.01
 p_tree_to_old_tree = 0.25
 P_sapling_to_tree = 0.35
 # Forest size (number of cells in x and y directions).
 nx, ny = 100, 100
 # Initialize the forest grid.
-X = np.random.choice([0,1,2,3,4,5,6,7,8], (ny, nx), p=[0.5, 0.05, 0.05, 0.19, 0.1, 0.05, 0.05, 0.005, 0.005])
+X = np.random.choice([0,1,2,3,4,5,6,7,8], (ny, nx), p=[0.3, 0.05, 0.05, 0.47, 0.108, 0.01, 0.01, 0.001, 0.001])
 
 
 fig = plt.figure(figsize=(25/3, 6.25))
@@ -164,11 +171,21 @@ im = ax.imshow(X, cmap=cmap, norm=norm)#, interpolation='nearest')
 def animate(i):
     im.set_data(animate.X)
     animate.X = iterate(animate.X)
+    #plt.legend([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], ['white','sienna', 'darkolivegreen', 'darkgreen', 'lime', 'gray', 'blue', 'coral', 'firebrick', 'orange', 'black'])
+    plt.legend(handles=[mpatches.Patch(color='white', label='EMPTY'), mpatches.Patch(color='sienna', label='DEAD_TREE'), \
+        mpatches.Patch(color='darkolivegreen', label='OLD_TREE'), mpatches.Patch(color='darkgreen', label='TREE'), \
+        mpatches.Patch(color='lime', label='SAPLING'), mpatches.Patch(color='gray', label='STONE'), \
+        mpatches.Patch(color='blue', label='WATER'), mpatches.Patch(color='coral', label='SPARKS'), \
+        mpatches.Patch(color='firebrick', label='FIRE'), mpatches.Patch(color='orange', label='COALS'), \
+        mpatches.Patch(color='black', label='BURNED \nGROUND')], bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+
 # Bind our grid to the identifier X in the animate function's namespace.
 animate.X = X
 
 # Interval between frames (ms).
 interval = 100
 anim = animation.FuncAnimation(fig, animate, interval=interval, frames=200)
-anim.save(f'animations/animation_water_influence_{water_reduction_rate}_wind_direction_{wind_direction}.gif', fps=60)
-#plt.show()
+red_patch = mpatches.Patch(color='red', label='The red data')
+plt.legend(handles=[red_patch])
+#anim.save(f'animations/animation_water_influence_{water_reduction_rate}_wind_direction_{wind_direction}_with_legend.gif', fps=60)
+plt.show()
