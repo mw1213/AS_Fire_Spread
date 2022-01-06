@@ -162,7 +162,7 @@ def animate_with_pltshow(interval=100, wr_rate = 1, wind_dir = e, frames=200):
 
 
     fig = plt.figure(figsize=(25/3, 6.25))
-    ax = fig.add_subplot(111)
+    ax = plt.axes([0.05, 0.05, 0.5, 0.9])
     ax.set_axis_off()
     im = ax.imshow(X, cmap=cmap, norm=norm)#, interpolation='nearest')
 
