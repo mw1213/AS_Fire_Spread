@@ -154,48 +154,50 @@ water_reduction_rate =  1
 wind_direction = e
 # Forest size (number of cells in x and y directions).
 nx, ny = 100, 100
-# Initialize the forest grid.
-X = np.random.choice([0,1,2,3,4,5,6,7,8], (ny, nx), p=[0.3, 0.05, 0.05, 0.47, 0.108, 0.01, 0.01, 0.001, 0.001])
-
-
-fig = plt.figure(figsize=(25/3, 6.25))
-ax = fig.add_subplot(111)
-ax.set_axis_off()
-im = ax.imshow(X, cmap=cmap, norm=norm)#, interpolation='nearest')
-
-
-
-# The animation function: called to produce a frame for each generation.
-def animate(i):
-    im.set_data(animate.X)
-    animate.X = iterate(animate.X)
-    plt.legend(handles=[mpatches.Patch(color='white', label='EMPTY'), mpatches.Patch(color='sienna', label='DEAD_TREE'), \
-        mpatches.Patch(color='darkolivegreen', label='OLD_TREE'), mpatches.Patch(color='darkgreen', label='TREE'), \
-        mpatches.Patch(color='lime', label='SAPLING'), mpatches.Patch(color='gray', label='STONE'), \
-        mpatches.Patch(color='blue', label='WATER'), mpatches.Patch(color='coral', label='SPARKS'), \
-        mpatches.Patch(color='firebrick', label='FIRE'), mpatches.Patch(color='orange', label='COALS'), \
-        mpatches.Patch(color='black', label='BURNED \nGROUND')], bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-
-# Bind our grid to the identifier X in the animate function's namespace.
-animate.X = X
 
 # interval = time between frames (ms).
-def animate_with_pltshow(interval=100, wr_rate = 1, wind_dir = e):
+def animate_with_pltshow(interval=100, wr_rate = 1, wind_dir = e, frames=200):
+    # Initialize the forest grid.
+    X = np.random.choice([0,1,2,3,4,5,6,7,8], (ny, nx), p=[0.3, 0.05, 0.05, 0.47, 0.108, 0.01, 0.01, 0.001, 0.001])
+
+
+    fig = plt.figure(figsize=(25/3, 6.25))
+    ax = fig.add_subplot(111)
+    ax.set_axis_off()
+    im = ax.imshow(X, cmap=cmap, norm=norm)#, interpolation='nearest')
+
+    plt.rcParams['figure.facecolor'] = '#272727'
+    plt.rcParams['savefig.facecolor'] = '#272727'
+
+
+    # The animation function: called to produce a frame for each generation.
+    def animate(i):
+        im.set_data(animate.X)
+        animate.X = iterate(animate.X)
+        plt.legend(handles=[mpatches.Patch(color='white', label='EMPTY'), mpatches.Patch(color='sienna', label='DEAD_TREE'), \
+            mpatches.Patch(color='darkolivegreen', label='OLD_TREE'), mpatches.Patch(color='darkgreen', label='TREE'), \
+            mpatches.Patch(color='lime', label='SAPLING'), mpatches.Patch(color='gray', label='STONE'), \
+            mpatches.Patch(color='blue', label='WATER'), mpatches.Patch(color='coral', label='SPARKS'), \
+            mpatches.Patch(color='firebrick', label='FIRE'), mpatches.Patch(color='orange', label='COALS'), \
+            mpatches.Patch(color='black', label='BURNED \nGROUND')], bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+
+    # Bind our grid to the identifier X in the animate function's namespace.
+    animate.X = X
+
     global water_reduction_rate
     water_reduction_rate = wr_rate
     global wind_direction
     wind_direction = wind_dir
-    anim = animation.FuncAnimation(fig, animate, interval=interval, frames=200)
-    plt.show()
+    return animation.FuncAnimation(fig, animate, interval=interval, frames=frames)
 
-#lower fps fater animation when interval == 100
-def animate_to_gif(interval=100, no_fps=60, wr_rate = 1, wind_dir = e):
-    global water_reduction_rate
-    water_reduction_rate = wr_rate
-    global wind_direction
-    wind_direction = wind_dir
-    anim = animation.FuncAnimation(fig, animate, interval=interval, frames=200)
-    anim.save(f'animations/animation_water_influence_{water_reduction_rate}_wind_direction_{wind_direction}_with_legend_fps_{no_fps}.gif', fps = no_fps)
+# #lower fps fater animation when interval == 100
+# def animate_to_gif(interval=100, no_fps=60, wr_rate = 1, wind_dir = e):
+#     global water_reduction_rate
+#     water_reduction_rate = wr_rate
+#     global wind_direction
+#     wind_direction = wind_dir
+#     anim = animation.FuncAnimation(fig, animate, interval=interval, frames=200)
+#     anim.save(f'animations/animation_water_influence_{water_reduction_rate}_wind_direction_{wind_direction}_with_legend_fps_{no_fps}.gif', fps = no_fps)
 
-animate_with_pltshow(10, wind_dir = s)
+# animate_with_pltshow(10, wind_dir = s)
 #animate_to_gif(wind_dir=nw)
